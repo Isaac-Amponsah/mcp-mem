@@ -53,10 +53,10 @@ def get_mem0_client():
             }
         }
         
-        # Set base URL for Ollama if provided
+        # The ollama library uses the native API (no /v1), so strip it if present
         llm_base_url = os.getenv('LLM_BASE_URL')
         if llm_base_url:
-            config["llm"]["config"]["ollama_base_url"] = llm_base_url
+            config["llm"]["config"]["ollama_base_url"] = llm_base_url.rstrip('/').removesuffix('/v1')
     
     # Configure embedder based on provider
     if llm_provider == 'openai':
@@ -82,17 +82,20 @@ def get_mem0_client():
         }
         
         # Set base URL for Ollama if provided
+        # The ollama library uses the native API (no /v1), so strip it if present
         embedding_base_url = os.getenv('LLM_BASE_URL')
         if embedding_base_url:
-            config["embedder"]["config"]["ollama_base_url"] = embedding_base_url
+            native_base_url = embedding_base_url.rstrip('/').removesuffix('/v1')
+            config["embedder"]["config"]["ollama_base_url"] = native_base_url
     
     # Configure Supabase vector store
     config["vector_store"] = {
-        "provider": "supabase",
+        "provider": "qdrant",
         "config": {
-            "connection_string": os.environ.get('DATABASE_URL', ''),
+            "host": "localhost",
+            "port": 6333,
             "collection_name": "mem0_memories",
-            "embedding_model_dims": 1536 if llm_provider == "openai" else 768
+            "embedding_model_dims": 768
         }
     }
 
