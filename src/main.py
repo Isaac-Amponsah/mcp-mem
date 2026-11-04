@@ -44,7 +44,6 @@ async def mem0_lifespan(server: FastMCP) -> AsyncIterator[Mem0Context]:
 # Initialize FastMCP server with the Mem0 client as context
 mcp = FastMCP(
     "mcp-mem0",
-    description="MCP server for long term memory storage and retrieval with Mem0",
     lifespan=mem0_lifespan,
     host=os.getenv("HOST") or "0.0.0.0",
     port=int(os.getenv("PORT") or "8050")
@@ -83,7 +82,7 @@ async def get_all_memories(ctx: Context) -> str:
     """
     try:
         mem0_client = ctx.request_context.lifespan_context.mem0_client
-        memories = mem0_client.get_all(user_id=DEFAULT_USER_ID)
+        memories = mem0_client.get_all(filters={"user_id": DEFAULT_USER_ID}, top_k=100)
         if isinstance(memories, dict) and "results" in memories:
             flattened_memories = [memory["memory"] for memory in memories["results"]]
         else:
@@ -106,7 +105,7 @@ async def search_memories(ctx: Context, query: str, limit: int = 3) -> str:
     """
     try:
         mem0_client = ctx.request_context.lifespan_context.mem0_client
-        memories = mem0_client.search(query, user_id=DEFAULT_USER_ID, limit=limit)
+        memories = mem0_client.search(query, filters={"user_id": DEFAULT_USER_ID}, top_k=limit)
         if isinstance(memories, dict) and "results" in memories:
             flattened_memories = [memory["memory"] for memory in memories["results"]]
         else:
